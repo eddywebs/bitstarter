@@ -9,7 +9,7 @@ app.get('/', function(request, response) {
 
 fs.readFile('index.html', 'utf8', function(err, html){
 	if(err) throw err;
-	console.log(html);
+	response.log(html);
 	});
 
 var port = process.env.PORT || 5000;
