@@ -26,6 +26,7 @@ var program = require('commander');
 var cheerio = require('cheerio');
 var HTMLFILE_DEFAULT = "index.html";
 var CHECKSFILE_DEFAULT = "checks.json";
+var restler = require('restler');
 
 var assertFileExists = function(infile) {
     var instr = infile.toString();
@@ -61,36 +62,51 @@ var clone = function(fn) {
     return fn.bind({});
 };
 
+function dumpUrltoDefault(url){
+
+restler.get(url).on('complete', function(result) {
+  if (result instanceof Error) {
+    sys.puts('Error: ' + result.message);
+  } else {
+    fs.writeFileSync(program.file, result.toString());
+  }
+});
+};
+
 if(require.main == module) {
     program
         .option('-c, --checks <check_file>', 'Path to checks.json', clone(assertFileExists), CHECKSFILE_DEFAULT)
         .option('-f, --file <html_file>', 'Path to index.html', clone(assertFileExists), HTMLFILE_DEFAULT)
+        .option('-u, --url <html_file>', 'url of html to fetch')
         .parse(process.argv);
+
+        //dump the url as default html and run the program
+        if(program.url){dumpUrltoDefault(program.url)};
     var checkJson = checkHtmlFile(program.file, program.checks);
     var outJson = JSON.stringify(checkJson, null, 4);
     console.log(outJson);
 } else {
     exports.checkHtmlFile = checkHtmlFile;
 }
-checks.json
-This is the initial checks.json file. You will modify this to add more checks (see below).
+// checks.json
+// This is the initial checks.json file. You will modify this to add more checks (see below).
 
-["h1",
- ".navigation"]
-Sample usage
-Here is a sample use case.
+// ["h1",
+//  ".navigation"]
+// Sample usage
+// Here is a sample use case.
 
-[balajis@jiunit:~]$head -n3 index.html 
-<!DOCTYPE html>
-<html lang="en">
-  <head>
+// [balajis@jiunit:~]$head -n3 index.html 
+// <!DOCTYPE html>
+// <html lang="en">
+//   <head>
 
-[balajis@jiunit:~]$cat checks.json 
-["h1",
- ".navigation"]
+// [balajis@jiunit:~]$cat checks.json 
+// ["h1",
+//  ".navigation"]
 
-[balajis@jiunit:~]$./grader.js --checks checks.json --file index.html
-{
-    ".navigation": true,
-    "h1": true
-}
+// [balajis@jiunit:~]$./grader.js --checks checks.json --file index.html
+// {
+//     ".navigation": true,
+//     "h1": true
+// }
